@@ -6,6 +6,11 @@ const axios = require('axios')
 
 const config = require('./config.json');
 
+// Load add-ons
+const addons = {
+    EventDatesFormatter: require('./addons/EventDatesFormatter')
+}
+
 // Authentication [Basic Auth] middleware
 
 app.use((req, res, next) => {
@@ -34,11 +39,13 @@ app.get('/scrape/events', (req, res) => {
             t: 'e'
         }
     }).then(response=>{
-        axios.put(
-            `${config.db.firebase.databaseURL}/scraped_events.json?auth=${config.db.firebase.authSecret}`, 
-            JSON.stringify(response.data.results)
-        ).then(()=>{
-            res.json(200);
+        addons.EventDatesFormatter(response.data.results, resultsDateFormatted =>{
+            axios.put(
+                `${config.db.firebase.databaseURL}/scraped_events.json?auth=${config.db.firebase.authSecret}`, 
+                JSON.stringify(resultsDateFormatted)
+            ).then(()=>{
+                res.json(200);
+            });
         });
     }).catch(err=>{
         res.status(500).json({ error: err})
