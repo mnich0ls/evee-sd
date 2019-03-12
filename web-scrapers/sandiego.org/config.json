@@ -1,0 +1,12 @@
+{
+    "scraper":{
+        "username":"test",
+        "password":"abcd"
+    },
+    "db":{
+        "firebase":{
+            "databaseURL":"https://evee-sd.firebaseio.com",
+            "authSecret":"TMe7oNMbWHLHcN45t2uYcpltEQCAeHCrKeh8V7Xn"
+        }
+    }
+}
