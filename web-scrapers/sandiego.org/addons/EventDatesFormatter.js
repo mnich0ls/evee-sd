@@ -12,7 +12,7 @@
  * 
  *  The module makes the following changes to each object in the input array:
  * 
- *      event.original_date [Added] - (Contains the original data from event.date)
+ *      event.original_date [Added] - (Contains the original data from event.dates)
  *      event.dates [Modified] - (Contains the start date of event in ISO 8601)
  *      event.end_date [Added] - (Contains the end date of event in ISO 8601)
  * 
