@@ -12,9 +12,14 @@
  * 
  *  The module makes the following changes to each object in the input array:
  * 
- *      event.original_date [Added] - (Contains the original data from event.dates)
- *      event.dates [Modified] - (Contains the start date of event in ISO 8601)
+ *      event.original_dates [Added] - (Contains the original data from event.dates)
+ *      event.dates [Removed] - (Removed from object and set on event.original_dates property)
+ *      event.start_date [Added] - (Contains the start date of event in ISO 8601)
  *      event.end_date [Added] - (Contains the end date of event in ISO 8601)
+ * 
+ *  [References]
+ * 
+ *  1. https://github.com/mnich0ls/evee-sd/issues/5
  * 
  */
 
@@ -25,7 +30,7 @@ module.exports = (scrapedData, callback)=>{
     var currentDate = moment().format('YYYY-MM-DD');
     var scrapedDataDateFormatted = scrapedData.map(event=>{
     
-        event.original_date = event.dates;
+        event.original_dates = event.dates;
         
         let datesSplitString = event.dates.split('-')
             
@@ -63,9 +68,9 @@ module.exports = (scrapedData, callback)=>{
             */
 
             if(moment(formattedStartDate).isAfter(currentDate)){
-                event.dates = formattedStartDate;
+                event.start_date = formattedStartDate;
             } else {
-                event.dates = currentDate;
+                event.start_date = currentDate;
             }
                                   
             if(datesSplitStringEndDate !== 'ongoing'){
@@ -75,9 +80,15 @@ module.exports = (scrapedData, callback)=>{
             }
             
         } else {
-            event.dates = moment(event.dates, 'MMM DD, YYYY').format('YYYY-MM-DD');
-            event.end_date = '';        
+            event.start_date = moment(event.dates, 'MMM DD, YYYY').format('YYYY-MM-DD');
+            event.end_date = 0;        
         }
+
+        // Final cleanup 
+
+        delete event.dates // Remove from object already set on [original_dates] property above.
+
+        // Return the updated event object
 
         return event;
 
