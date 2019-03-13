@@ -2,7 +2,7 @@
 
 ## Budget
 
-Currently the budget for this project is $300-$500 a month. The current amount available for March 2019 is $150.
+Currently the budget for this project is $300-$500 a month. The current amount available for March 2019 is $50.
 
 ## Current Tasks
 
