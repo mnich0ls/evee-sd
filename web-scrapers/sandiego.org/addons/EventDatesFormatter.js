@@ -1,21 +1,24 @@
 /**
  * 
- *  [Filename] 
+ * @module addons/EventDatesFormatter
  * 
- *  /web-scrapers/sandiego.org/addons/EventDatesFormatter.js
- *  
- *  [Description]
- *  
- *  Small addon module plugin that ../app.js calls after obtaining event data results
- *  from sandiego.org. This module updates each returned event and formats dates for 
- *  ISO 8601 (YYYY-MM-DDDD) standard. 
+ * @description 
+ * Small addon module plugin for sandiego.org event scraper used inside ../app.js 
+ * after obtaining event data results. This module updates each returned event and 
+ * formats dates for ISO 8601 (YYYY-MM-DDDD) standard.
+ *
+ * @param {Object[]} scrapedData - The array of of events pulled from sandiego.org.
+ * @param {callback(Array)} callback - The callback that handles the newly created date formatted events array.
+ * @returns {Object[]} scrapedDataDateFormatted - Array of updated sandiego.org event objects with date formatting. 
+ */
+
+/* 
+ * The module makes the following changes to each object in the input array:
  * 
- *  The module makes the following changes to each object in the input array:
- * 
- *      event.original_dates [Added] - (Contains the original data from event.dates)
- *      event.dates [Removed] - (Removed from object and set on event.original_dates property)
- *      event.start_date [Added] - (Contains the start date of event in ISO 8601)
- *      event.end_date [Added] - (Contains the end date of event in ISO 8601)
+ * - event.original_dates [Added] - (Contains the original data from event.dates)
+ * - event.dates [Removed] - (Removed from object and set on event.original_dates property)
+ * - event.start_date [Added] - (Contains the start date of event in ISO 8601)
+ * - event.end_date [Added] - (Contains the end date of event in ISO 8601)
  * 
  *  [References]
  * 
@@ -86,10 +89,10 @@ module.exports = (scrapedData, callback)=>{
 
         // Final cleanup 
 
-        delete event.dates // Remove from object already set on [original_dates] property above.
+        delete event.dates // Remove dates property. We already duplicated as [original_dates] property above.
 
         // Return the updated event object
-
+        
         return event;
 
     });
