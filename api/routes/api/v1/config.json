@@ -1,0 +1,10 @@
+{
+    "version": "1",
+    "eventsAPI": {
+        "aws": {
+            "sqs": {
+                "queueURL": "https://sqs.us-west-1.amazonaws.com/790822830594/Evee-NewEventsQueue"
+            }
+        }
+    }
+}
