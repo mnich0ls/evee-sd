@@ -2,7 +2,7 @@ var config = require('../../config.json');
 
 // Amazon SDK - SQS (Simple Queue Service) Setup
 var aws = require('aws-sdk');
-aws.config.loadFromPath(`${__dirname}/../aws-sqs-config.json`);
+aws.config.loadFromPath(`${__dirname}/../aws-sqs.config.json`);
 var sqs = new aws.SQS();
 
 var ValidateRequestBody = require('../../../../../helpers/ValidateRequestBody');
