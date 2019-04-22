@@ -3,6 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var basicAuth = require('express-basic-auth');
 
 var indexRouter = require('./routes/index');
 var apiRouter = { 
@@ -20,6 +21,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// basic auth middlware
+var authConfig = require('./api-auth.config.json'); 
+
+app.use(basicAuth({
+  users: { 
+    [authConfig.username] : authConfig.password 
+  }
+}));
 
 app.use('/', indexRouter);
 app.use('/api/v1', apiRouter.v1);
