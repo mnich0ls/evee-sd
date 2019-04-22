@@ -3,7 +3,7 @@
     "eventsAPI": {
         "aws": {
             "sqs": {
-                "queueURL": "https://sqs.us-west-1.amazonaws.com/790822830594/Evee-NewEventsQueue"
+                "queueURL": "https://sqs.us-west-1.amazonaws.com/496310369191/EveeSD_AES_Events"
             }
         }
     }
