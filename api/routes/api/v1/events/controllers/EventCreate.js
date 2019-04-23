@@ -26,7 +26,9 @@ var paramValidations = {
         maxLength: 78
     },
     'source': {
-        allowedValues: ['meetup.com','sandiego.org']
+        // allowedValues: ['meetup.com','sandiego.org']
+        type: 'Url',
+        minLength: 1
     },
     'price': {
         type: 'Currency'
@@ -50,7 +52,8 @@ var paramValidations = {
         minLength: 0,
     },
     'category': {
-        allowedValues: ['concerts', 'festivals', 'free events', 'shows', 'nightlife', 'other']
+        // allowedValues: ['concerts', 'festivals', 'free events', 'shows', 'nightlife', 'other']
+        minLength: 1
     },
     'details_url': {
         type: 'Url',
