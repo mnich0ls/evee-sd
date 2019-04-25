@@ -1,4 +1,4 @@
-var config = require('./config.json');
+var config = require('./api-defaults.config.json');
 
 var api = require('express').Router();
 var eventsAPI = require('./events');

@@ -1,4 +1,4 @@
-var config = require('../../eventsAPI.config.json');
+var config = require('../eventsAPI.config.json');
 
 // Amazon SDK - SQS (Simple Queue Service) Setup
 var aws = require('aws-sdk');
