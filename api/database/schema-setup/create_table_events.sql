@@ -1,4 +1,5 @@
-CREATE TABLE `eveesd_schema`.`events` (
+CREATE SCHEMA `eveesd` DEFAULT CHARACTER SET utf8mb4 ;
+CREATE TABLE `eveesd`.`events` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `status` VARCHAR(20) NOT NULL,
   `title` VARCHAR(255) NOT NULL,
