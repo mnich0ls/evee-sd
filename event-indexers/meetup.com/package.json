@@ -1,0 +1,16 @@
+{
+  "name": "meetup.com",
+  "version": "1.0.0",
+  "description": "This specific site we are using the Meetup.com API endpoint resource ```https://api.meetup.com/find/upcoming_events```",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "open-graph": "^0.2.4",
+    "request": "^2.88.0"
+  }
+}
