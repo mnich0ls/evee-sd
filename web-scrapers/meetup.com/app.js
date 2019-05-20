@@ -1,4 +1,4 @@
-const config = require('./config.json');
+const config = require('./app.config.json');
 const request = require('request');
 const og = require('open-graph');
 
@@ -23,6 +23,7 @@ let upcoming_events__Options = {
         lat: '32.7167',
         lon: '-117.1661',
         order: 'time',
+        // page: '1'
         page: '100000'
     },
     headers: {
@@ -30,11 +31,11 @@ let upcoming_events__Options = {
     }
 };
 
-let firebase_db__Options = {
-    method: 'POST',
-    url: `${config.db.firebase.databaseURL}/scraped_events.json?auth=${config.db.firebase.authSecret}`,
-    body: {}
-}
+// let firebase_db__Options = {
+//     method: 'POST',
+//     url: `${config.db.firebase.databaseURL}/scraped_events.json?auth=${config.db.firebase.authSecret}`,
+//     body: {}
+// }
 
 request(refresh_token__Options, (error, response, body) => {
   if (error) throw new Error(error);
@@ -45,11 +46,41 @@ request(refresh_token__Options, (error, response, body) => {
     let meetupEvents = JSON.parse(body).events;
     convertEventsToEveeFormat(meetupEvents, eveeFormattedEvents => {
         eveeFormattedEvents.forEach(eveeEvent=>{
-            firebase_db__Options.body = JSON.stringify(eveeEvent.event);
-            request(firebase_db__Options, (error, response, body) => {
+            // firebase_db__Options.body = JSON.stringify(eveeEvent.event);
+            // request(firebase_db__Options, (error, response, body) => {
+                // if (error) console.log(error);
+                // console.log(JSON.parse(body));
+            // });
+
+            var event = eveeEvent.event;
+            var options = { 
+                method: 'POST',
+                url: `${config.eveesd.api.baseURL}/events/create`,
+                headers: { 
+                    'Authorization': `Basic ${config.eveesd.api.authorization}`,
+                    'Content-Type': 'application/json' 
+                },
+                body: { 
+                    title: event.title,
+                    source: event.source_url,
+                    price: event.price,
+                    start_date: event.dates.start_date,
+                    end_date: event.dates.end_date == '0' ? event.dates.start_date : event.dates.end_date,
+                    location: event.location,
+                    category: event.category,
+                    details_url: event.detail_url,
+                    description: '0',
+                    thumbnail_url: event.thumbnail_url
+                },
+                json: true 
+            };
+
+            request(options, function (error, response, body) {
                 if (error) console.log(error);
-                console.log(JSON.parse(body));
+                console.log(body);
             });
+           
+
         });
     });
   });
@@ -58,38 +89,45 @@ request(refresh_token__Options, (error, response, body) => {
 function convertEventsToEveeFormat(meetupEvents, cb){
     meetupEvents.forEach((meetup,index)=>{
         og(meetup.link,(err,meta)=>{
-            meetupEvents[index].thumbnail_url = meta.image.url;
-            if(index === meetupEvents.length-1){
-                // Finished getting open graph thumbnails           
-                cb(meetupEvents.map(event=>{
-                    /* 
-                        Meetup API events do not have a property for a thumbnail URL.
-                        However, we can obtain the image thumbnail by accessing the 
-                        pages open-graph data. It contains metadata for image. We will
-                        associate this to the object we are creating below. 
-                    */
-                    return {
-                        "event": {
-                            "title": event.name,
-                            "category": 'meetup',
-                            "location": event.venue ? event.venue.city : event.group.localized_location,
-                            "price": event.fee ? event.fee : 0,
-                            "dates": {
-                                "start_date": event.local_date,
-                                "end_date": "0"
-                            },
-                            "time": event.local_time,
-                            "thumbnail_url": event.thumbnail_url ? event.thumbnail_url: 0, // via open-graph
-                            "detail_url": event.link,
-                            "source_url": "https://api.meetup.com/find/upcoming_events",
-                            "metadata": {
-                                "status": "active",
-                                "quality_rating": "",
-                                "original_values": "",
+            if(meta){
+                meetupEvents[index].thumbnail_url = meta.image.url;
+                if(index === meetupEvents.length-1){
+                    // Finished getting open graph thumbnails           
+                    cb(meetupEvents.map(event=>{
+                        /* 
+                            Meetup API events do not have a property for a thumbnail URL.
+                            However, we can obtain the image thumbnail by accessing the 
+                            pages open-graph data. It contains metadata for image. We will
+                            associate this to the object we are creating below. 
+                        */
+
+                        // Occassionally the meetup API appears to return events with no url
+                        // This causes issue with our API validation check + we don't want them 
+                        // if the user cannot navigate to them from eveesd site.
+
+                        return {
+                            "event": {
+                                "title": event.name,
+                                "category": 'meetup',
+                                "location": event.venue ? event.venue.city : event.group.localized_location,
+                                "price": event.fee ? event.fee.amount : 0,
+                                "dates": {
+                                    "start_date": event.local_date,
+                                    "end_date": "0"
+                                },
+                                "time": event.local_time,
+                                "thumbnail_url": event.thumbnail_url ? event.thumbnail_url: 'https://i.imgur.com/yIPRLMg.jpg',
+                                "detail_url": event.link,
+                                "source_url": "https://api.meetup.com/find/upcoming_events",
+                                "metadata": {
+                                    "status": "active",
+                                    "quality_rating": "",
+                                    "original_values": "",
+                                }
                             }
-                        }
-                    }  
-                }));
+                        }  
+                    }));
+                }
             }
         });
     });

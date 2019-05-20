@@ -3,7 +3,11 @@ var RegEx = {
     Date: {
         ISO_8601: (value)=> value.match(/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])/g) ? true : false
     },
-    Url: (value)=>value.match(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/g) ? true: false 
+    Url: (value)=>{
+        if(value !== 0){
+            return value.match(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/g) ? true: false;
+        }
+    } 
 }
 
 var getYYYYMMDD = (value)=> {
@@ -41,7 +45,7 @@ module.exports = function(payload, requiredParams, paramValidations){
                         break;
                     case 'type':
                         if(validationTypeValue === 'Currency'){
-                            var isValidCurrencyAmount = RegEx.Currency(payload[param]);
+                            var isValidCurrencyAmount = RegEx.Currency(payload[param].toString());
                             if(!isValidCurrencyAmount){
                                 validationErrors.push(`[${param}] must be a number format.`);
                             }
@@ -53,6 +57,7 @@ module.exports = function(payload, requiredParams, paramValidations){
                             // Check to make sure the end_date is not before the start_date
                             else if(param === 'end_date'){
                                 var start_date = getYYYYMMDD(payload['start_date']);
+                                if(payload[param] == "0"){payload[param] = payload['start_date']}
                                 var end_date = getYYYYMMDD(payload[param]);
                                 if(new Date(end_date.YYYY, end_date.MM, end_date.DD) < new Date(start_date.YYYY, start_date.MM, start_date.DD)){
                                     validationErrors.push(`[${param}] cannot be before start_date.`);
@@ -75,6 +80,7 @@ module.exports = function(payload, requiredParams, paramValidations){
                 }
             }
         }
+
         if(validationErrors.length === 0) 
             return [];
         return {

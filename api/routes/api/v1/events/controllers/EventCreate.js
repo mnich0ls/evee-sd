@@ -23,7 +23,7 @@ var requiredParams = [
 var paramValidations = {
     'title': {
         minLength: 6,
-        maxLength: 78
+        maxLength: 250
     },
     'source': {
         // allowedValues: ['meetup.com','sandiego.org']
@@ -41,7 +41,7 @@ var paramValidations = {
     },
     'location': {
         minLength: 2,
-        maxLength: 32
+        maxLength: 200
     },
     'description': {
         minLength: 0,
@@ -63,6 +63,10 @@ var paramValidations = {
 
 module.exports = function(payload, callback){
     var validation = ValidateRequestBody(payload, requiredParams, paramValidations);
+    
+    // AWS SQS appears to need the price value as string
+    payload.price = payload.price.toString();
+
     // All required parameters are provided and event payload is allowed
     if(validation.length === 0){
         sendValidatedEventToMessageQueue(payload)
