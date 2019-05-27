@@ -5,6 +5,7 @@
   "main": "app.js",
   "dependencies": {
     "axios": "^0.18.0",
+    "cron": "^1.7.1",
     "express": "^4.16.4",
     "moment": "^2.24.0",
     "open-graph": "^0.2.4",

@@ -1,6 +1,15 @@
 const config = require('./app.config.json');
 const request = require('request');
 const og = require('open-graph');
+const CronJob = require('cron').CronJob;
+
+// Run 12:00 am midnight daily
+let scheduledJob = new CronJob('0 0 0 * * *', function() {
+    console.log('Scheduled job started!');
+    makeRequest();
+}, null, null, 'America/Los_Angeles');
+
+scheduledJob.start();
 
 let refresh_token__Options = {
     method: 'POST',
@@ -31,60 +40,56 @@ let upcoming_events__Options = {
     }
 };
 
-// let firebase_db__Options = {
-//     method: 'POST',
-//     url: `${config.db.firebase.databaseURL}/scraped_events.json?auth=${config.db.firebase.authSecret}`,
-//     body: {}
-// }
-
-request(refresh_token__Options, (error, response, body) => {
-  if (error) throw new Error(error);
-  let access_token = JSON.parse(body).access_token;
-  upcoming_events__Options.headers['Authorization'] = `Bearer ${access_token}`;
-  request(upcoming_events__Options, (event, response, body) => {
-    if (error) throw new Error(error);
-    let meetupEvents = JSON.parse(body).events;
-    convertEventsToEveeFormat(meetupEvents, eveeFormattedEvents => {
-        eveeFormattedEvents.forEach(eveeEvent=>{
-            // firebase_db__Options.body = JSON.stringify(eveeEvent.event);
-            // request(firebase_db__Options, (error, response, body) => {
-                // if (error) console.log(error);
-                // console.log(JSON.parse(body));
-            // });
-
-            var event = eveeEvent.event;
-            var options = { 
-                method: 'POST',
-                url: `${config.eveesd.api.baseURL}/events/create`,
-                headers: { 
-                    'Authorization': `Basic ${config.eveesd.api.authorization}`,
-                    'Content-Type': 'application/json' 
-                },
-                body: { 
-                    title: event.title,
-                    source: event.source_url,
-                    price: event.price,
-                    start_date: event.dates.start_date,
-                    end_date: event.dates.end_date == '0' ? event.dates.start_date : event.dates.end_date,
-                    location: event.location,
-                    category: event.category,
-                    details_url: event.detail_url,
-                    description: '0',
-                    thumbnail_url: event.thumbnail_url
-                },
-                json: true 
-            };
-
-            request(options, function (error, response, body) {
-                if (error) console.log(error);
-                console.log(body);
+function makeRequest(){
+    request(refresh_token__Options, (error, response, body) => {
+        if (error) throw new Error(error);
+        let access_token = JSON.parse(body).access_token;
+        upcoming_events__Options.headers['Authorization'] = `Bearer ${access_token}`;
+        request(upcoming_events__Options, (event, response, body) => {
+            if (error) throw new Error(error);
+            let meetupEvents = JSON.parse(body).events;
+            convertEventsToEveeFormat(meetupEvents, eveeFormattedEvents => {
+                eveeFormattedEvents.forEach(eveeEvent=>{
+                    // firebase_db__Options.body = JSON.stringify(eveeEvent.event);
+                    // request(firebase_db__Options, (error, response, body) => {
+                        // if (error) console.log(error);
+                        // console.log(JSON.parse(body));
+                    // });
+        
+                    var event = eveeEvent.event;
+                    var options = { 
+                        method: 'POST',
+                        url: `${config.eveesd.api.baseURL}/events/create`,
+                        headers: { 
+                            'Authorization': `Basic ${config.eveesd.api.authorization}`,
+                            'Content-Type': 'application/json' 
+                        },
+                        body: { 
+                            title: event.title,
+                            source: event.source_url,
+                            price: event.price,
+                            start_date: event.dates.start_date,
+                            end_date: event.dates.end_date == '0' ? event.dates.start_date : event.dates.end_date,
+                            location: event.location,
+                            category: event.category,
+                            details_url: event.detail_url,
+                            description: '0',
+                            thumbnail_url: event.thumbnail_url
+                        },
+                        json: true 
+                    };
+        
+                    request(options, function (error, response, body) {
+                        if (error) console.log(error);
+                        console.log(body);
+                    });
+                    
+        
+                });
             });
-           
-
         });
     });
-  });
-});
+}
 
 function convertEventsToEveeFormat(meetupEvents, cb){
     meetupEvents.forEach((meetup,index)=>{
