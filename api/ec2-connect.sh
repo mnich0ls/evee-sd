@@ -1,1 +1,1 @@
-ssh -i ./private-key/evee-events-api.pem ubuntu@ec2-13-52-186-249.us-west-1.compute.amazonaws.com
+ssh -i ./private-key/evee-events-api.pem ubuntu@ec2-18-144-1-16.us-west-1.compute.amazonaws.com
