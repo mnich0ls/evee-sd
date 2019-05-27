@@ -11,36 +11,38 @@ let scheduledJob = new CronJob('0 0 0 * * *', function() {
 
 scheduledJob.start();
 
-let refresh_token__Options = {
-    method: 'POST',
-    url: config.meetup.oauth2.authorization.access_url,
-    headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    form: { 
-        client_id: config.meetup.oauth2.authorization.client_id,
-        client_secret: config.meetup.oauth2.authorization.client_secret,
-        grant_type: 'refresh_token',
-        refresh_token: config.meetup.oauth2.refresh.refresh_token
-    }
-}
-
-let upcoming_events__Options = { 
-    method: 'GET',
-    url: `${config.meetup.api.baseURL}/find/upcoming_events`,
-    qs: { // lat and lon params are set for San Diego
-        lat: '32.7167',
-        lon: '-117.1661',
-        order: 'time',
-        // page: '1'
-        page: '100000'
-    },
-    headers: {
-        Authorization: null // Bearer token set in request
-    }
-};
 
 function makeRequest(){
+
+    let refresh_token__Options = {
+        method: 'POST',
+        url: config.meetup.oauth2.authorization.access_url,
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        form: { 
+            client_id: config.meetup.oauth2.authorization.client_id,
+            client_secret: config.meetup.oauth2.authorization.client_secret,
+            grant_type: 'refresh_token',
+            refresh_token: config.meetup.oauth2.refresh.refresh_token
+        }
+    }
+
+    let upcoming_events__Options = { 
+        method: 'GET',
+        url: `${config.meetup.api.baseURL}/find/upcoming_events`,
+        qs: { // lat and lon params are set for San Diego
+            lat: '32.7167',
+            lon: '-117.1661',
+            order: 'time',
+            // page: '1'
+            page: '100000'
+        },
+        headers: {
+            Authorization: null // Bearer token set in request
+        }
+    };
+
     request(refresh_token__Options, (error, response, body) => {
         if (error) throw new Error(error);
         let access_token = JSON.parse(body).access_token;
@@ -50,12 +52,7 @@ function makeRequest(){
             let meetupEvents = JSON.parse(body).events;
             convertEventsToEveeFormat(meetupEvents, eveeFormattedEvents => {
                 eveeFormattedEvents.forEach(eveeEvent=>{
-                    // firebase_db__Options.body = JSON.stringify(eveeEvent.event);
-                    // request(firebase_db__Options, (error, response, body) => {
-                        // if (error) console.log(error);
-                        // console.log(JSON.parse(body));
-                    // });
-        
+              
                     var event = eveeEvent.event;
                     var options = { 
                         method: 'POST',
