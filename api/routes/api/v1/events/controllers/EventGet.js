@@ -8,6 +8,8 @@ module.exports = function(values, callback){
 
     var filters = Object.keys(values);
     var SQL = null;
+    var limit = 50;
+    var offset = 0;
 
     // Perform a start_date ISO8601 (YYYY-MM-DD) validation
     if(values.start_date){
@@ -43,6 +45,14 @@ module.exports = function(values, callback){
         values = [values['category'],values['start_date']];
         SQL = "SELECT * FROM events WHERE status = 'active' AND category = ? AND start_date >= ?";
     } 
+
+    SQL += " limit ? offset ?";
+    values.push(limit);
+
+    if(!filters.page) {
+        filters.page = 1;
+    }
+    values.push(((filter.page - 1) * limit));
 
     db.query(SQL, values, (err,results)=>{
         callback({
