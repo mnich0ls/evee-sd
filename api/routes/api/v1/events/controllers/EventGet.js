@@ -7,9 +7,9 @@ var validations = {
 module.exports = function(values, callback){
 
     var filters = Object.keys(values);
-    var SQL = null;
+    var whiteListedValues = []
+    var SQL = "SELECT * FROM events WHERE status = 'active'";
     var limit = 50;
-    var offset = 0;
 
     // Perform a start_date ISO8601 (YYYY-MM-DD) validation
     if(values.start_date){
@@ -24,37 +24,26 @@ module.exports = function(values, callback){
     }
 
     // Check if the values from GET request contain start_date and/or category
-    if(filters.length === 0){
-        values = []
-        SQL = "SELECT * FROM events WHERE status = 'active'";
+    if(filters.includes('category')){
+        // Setup a query to filter events only by category
+        whiteListedValues.push((values['category']).toLowerCase());
+        SQL += " AND category = ?";
     }
-    else if(filters.length === 1){
-        if(filters.includes('category')){
-            // Setup a query to filter events only by category
-            values = [(values['category']).toLowerCase()];
-            SQL = "SELECT * FROM events WHERE status = 'active' AND category = ?";
-        }
-        else if(filters.includes('start_date')){
-            // Setup a query to filter events only by start_date
-            values = [values['start_date']];
-            SQL = "SELECT * FROM events WHERE status = 'active' AND start_date >= ?";
-        }
+    if(filters.includes('start_date')){
+        // Setup a query to filter events only by start_date
+        whiteListedValues.push(values['start_date']);
+        SQL = " AND start_date >= ?";
     }
-    else if(filters.length === 2){
-        // Setup a query to filter events both by category and start_date
-        values = [values['category'],values['start_date']];
-        SQL = "SELECT * FROM events WHERE status = 'active' AND category = ? AND start_date >= ?";
-    } 
 
-    SQL += " limit ? offset ?";
-    values.push(limit);
+    SQL += " ORDER BY start_date LIMIT ? OFFSET ?";
+    whiteListedValues.push(limit);
 
-    if(!filters.page) {
-        filters.page = 1;
+    if(!filters.includes('page')) {
+        values['page'] = 1;
     }
-    values.push(((filter.page - 1) * limit));
+    whiteListedValues.push(((values['page'] - 1) * limit));
 
-    db.query(SQL, values, (err,results)=>{
+    db.query(SQL, whiteListedValues, (err,results)=>{
         callback({
             response: results
         });
