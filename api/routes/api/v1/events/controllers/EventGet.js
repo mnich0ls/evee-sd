@@ -1,3 +1,5 @@
+let moment = require('moment')
+
 var db = require('../../../../../database/mysql-connection');
 
 var validations = {
@@ -29,10 +31,19 @@ module.exports = function(values, callback){
         whiteListedValues.push((values['category']).toLowerCase());
         SQL += " AND category = ?";
     }
-    if(filters.includes('start_date')){
+
+    // todo - refactor the start_date param - 
+    // the goal is to search for events on or after a certain date (which means we need to search the end_date event property)
+    let today = moment().format('YYYY-MM-DD')
+    if(filters.includes('start_date') && moment(today).isBefore(moment(values['start_date']))){
         // Setup a query to filter events only by start_date
+        // only if the start date is later than today 
         whiteListedValues.push(values['start_date']);
-        SQL = " AND start_date >= ?";
+        SQL += " AND end_date >= ?";
+    } else {
+        // default to events ending today or later
+        whiteListedValues.push(today)
+        SQL += " AND end_date >= ?"
     }
 
     SQL += " ORDER BY start_date LIMIT ? OFFSET ?";
