@@ -1,3 +1,5 @@
+let moment = require('moment')
+
 var db = require('../../../../../database/mysql-connection');
 
 var validations = {
@@ -7,7 +9,9 @@ var validations = {
 module.exports = function(values, callback){
 
     var filters = Object.keys(values);
-    var SQL = null;
+    var whiteListedValues = []
+    var SQL = "SELECT * FROM events WHERE status = 'active'";
+    var limit = 50;
 
     // Perform a start_date ISO8601 (YYYY-MM-DD) validation
     if(values.start_date){
@@ -22,29 +26,35 @@ module.exports = function(values, callback){
     }
 
     // Check if the values from GET request contain start_date and/or category
-    if(filters.length === 0){
-        values = []
-        SQL = "SELECT * FROM events WHERE status = 'active'";
+    if(filters.includes('category')){
+        // Setup a query to filter events only by category
+        whiteListedValues.push((values['category']).toLowerCase());
+        SQL += " AND category = ?";
     }
-    else if(filters.length === 1){
-        if(filters.includes('category')){
-            // Setup a query to filter events only by category
-            values = [(values['category']).toLowerCase()];
-            SQL = "SELECT * FROM events WHERE status = 'active' AND category = ?";
-        }
-        else if(filters.includes('start_date')){
-            // Setup a query to filter events only by start_date
-            values = [values['start_date']];
-            SQL = "SELECT * FROM events WHERE status = 'active' AND start_date >= ?";
-        }
-    }
-    else if(filters.length === 2){
-        // Setup a query to filter events both by category and start_date
-        values = [values['category'],values['start_date']];
-        SQL = "SELECT * FROM events WHERE status = 'active' AND category = ? AND start_date >= ?";
-    } 
 
-    db.query(SQL, values, (err,results)=>{
+    // todo - refactor the start_date param - 
+    // the goal is to search for events on or after a certain date (which means we need to search the end_date event property)
+    let today = moment().format('YYYY-MM-DD')
+    if(filters.includes('start_date') && moment(today).isBefore(moment(values['start_date']))){
+        // Setup a query to filter events only by start_date
+        // only if the start date is later than today 
+        whiteListedValues.push(values['start_date']);
+        SQL += " AND end_date >= ?";
+    } else {
+        // default to events ending today or later
+        whiteListedValues.push(today)
+        SQL += " AND end_date >= ?"
+    }
+
+    SQL += " ORDER BY start_date LIMIT ? OFFSET ?";
+    whiteListedValues.push(limit);
+
+    if(!filters.includes('page')) {
+        values['page'] = 1;
+    }
+    whiteListedValues.push(((values['page'] - 1) * limit));
+
+    db.query(SQL, whiteListedValues, (err,results)=>{
         callback({
             response: results
         });

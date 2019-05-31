@@ -11,7 +11,6 @@ let scheduledJob = new CronJob('0 0 0 * * *', function() {
 
 scheduledJob.start();
 
-
 function makeRequest(){
 
     let refresh_token__Options = {
@@ -30,7 +29,7 @@ function makeRequest(){
 
     let upcoming_events__Options = { 
         method: 'GET',
-        url: `${config.meetup.api.baseURL}/find/upcoming_events`,
+        url: `${config.meetup.api.baseURL}/find/upcoming_events?fields=title,fee,local_date,local_time,link,venue,group_category,featured_photo,thumbnail_url`,
         qs: { // lat and lon params are set for San Diego
             lat: '32.7167',
             lon: '-117.1661',
@@ -52,7 +51,6 @@ function makeRequest(){
             let meetupEvents = JSON.parse(body).events;
             convertEventsToEveeFormat(meetupEvents, eveeFormattedEvents => {
                 eveeFormattedEvents.forEach(eveeEvent=>{
-              
                     var event = eveeEvent.event;
                     var options = { 
                         method: 'POST',
@@ -79,9 +77,7 @@ function makeRequest(){
                     request(options, function (error, response, body) {
                         if (error) console.log(error);
                         console.log(body);
-                    });
-                    
-        
+                    });        
                 });
             });
         });
@@ -110,7 +106,7 @@ function convertEventsToEveeFormat(meetupEvents, cb){
                         return {
                             "event": {
                                 "title": event.name,
-                                "category": 'meetup',
+                                "category": event.group.category ? event.group.category.name : 'meetup',
                                 "location": event.venue ? event.venue.city : event.group.localized_location,
                                 "price": event.fee ? event.fee.amount : 0,
                                 "dates": {
@@ -118,7 +114,7 @@ function convertEventsToEveeFormat(meetupEvents, cb){
                                     "end_date": "0"
                                 },
                                 "time": event.local_time,
-                                "thumbnail_url": event.thumbnail_url ? event.thumbnail_url: 'https://i.imgur.com/yIPRLMg.jpg',
+                                "thumbnail_url": event.featured_photo ? event.featured_photo.thumb_link : 'https://i.imgur.com/yIPRLMg.jpg',
                                 "detail_url": event.link,
                                 "source_url": "https://api.meetup.com/find/upcoming_events",
                                 "metadata": {
@@ -134,3 +130,5 @@ function convertEventsToEveeFormat(meetupEvents, cb){
         });
     });
 }
+
+makeRequest();
