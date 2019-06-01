@@ -28,8 +28,8 @@ module.exports = function(values, callback){
     // Check if the values from GET request contain start_date and/or category
     if(filters.includes('category')){
         // Setup a query to filter events only by category
-        whiteListedValues.push((values['category']).toLowerCase());
-        SQL += " AND category = ?";
+        whiteListedValues.push((values['category']).toLowerCase())
+        SQL += " AND category = ?"
     }
 
     // todo - refactor the start_date param - 
@@ -38,12 +38,17 @@ module.exports = function(values, callback){
     if(filters.includes('start_date') && moment(today).isBefore(moment(values['start_date']))){
         // Setup a query to filter events only by start_date
         // only if the start date is later than today 
-        whiteListedValues.push(values['start_date']);
-        SQL += " AND end_date >= ?";
+        whiteListedValues.push(values['start_date'])
+        SQL += " AND end_date >= ?"
     } else {
         // default to events ending today or later
         whiteListedValues.push(today)
         SQL += " AND end_date >= ?"
+    }
+
+    if (filters.includes('search')) {
+        whiteListedValues.push('%' + values['search'] + '%')
+        SQL += " AND title like ?"
     }
 
     SQL += " ORDER BY start_date LIMIT ? OFFSET ?";
