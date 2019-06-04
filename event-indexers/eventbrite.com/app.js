@@ -11,8 +11,6 @@ let scheduledJob = new CronJob('0 20 0 * * *', function() {
 
 scheduledJob.start();
 
-makeRequest();
-
 function makeRequest(){
 
     // Create configured Eventbrite SDK
