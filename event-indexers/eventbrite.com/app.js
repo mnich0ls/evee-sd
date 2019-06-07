@@ -4,12 +4,12 @@ const request = require('request');
 const CronJob = require('cron').CronJob;
 
 // Run 12:20 am midnight daily
-// let scheduledJob = new CronJob('0 20 0 * * *', function() {
-    // console.log('Scheduled job started!');
+let scheduledJob = new CronJob('0 20 0 * * *', function() {
+    console.log('Scheduled job started!');
     makeRequest();
-// }, null, null, 'America/Los_Angeles');
+}, null, null, 'America/Los_Angeles');
 
-// scheduledJob.start();
+scheduledJob.start();
 
 function makeRequest(){
 
@@ -43,28 +43,28 @@ function makeRequest(){
 
             const page_count = page1.pagination.page_count;
 
-            // if(page_count > 1){
-            //     for (let page = 2; page<= page_count; page++){
-            //         let currentPage = await sdk.request(`${eventbriteSearchEndpoint}page=${page}`);
-            //         console.log('page_number',currentPage.pagination.page_number); 
-            //         currentPage.events.forEach(event=>events.push(event));
+            if(page_count > 1){
+                for (let page = 2; page<= page_count; page++){
+                    let currentPage = await sdk.request(`${eventbriteSearchEndpoint}page=${page}`);
+                    console.log('page_number',currentPage.pagination.page_number); 
+                    currentPage.events.forEach(event=>events.push(event));
 
-            //         // Get all other pages venue data (specifically postal_code)
-            //         // Duplicate code from above, we can refactor later.
-            //         for(let c=0; c<=events.length; c++){
-            //           if(events[c]){
-            //             let venue_id = events[c].venue_id;
-            //             if(venue_id){
-            //               let venueData = await sdk.request(`${eventbriteVenueEndpoint}/${venue_id}`)
-            //               events[c].location = venueData.name || venueData.address.city;
-            //               events[c].postal_code = venueData.address.postal_code;
-            //             }
-            //           }
-            //         }
+                    // Get all other pages venue data (specifically postal_code)
+                    // Duplicate code from above, we can refactor later.
+                    for(let c=0; c<=events.length; c++){
+                      if(events[c]){
+                        let venue_id = events[c].venue_id;
+                        if(venue_id){
+                          let venueData = await sdk.request(`${eventbriteVenueEndpoint}/${venue_id}`)
+                          events[c].location = venueData.name || venueData.address.city;
+                          events[c].postal_code = venueData.address.postal_code;
+                        }
+                      }
+                    }
 
-            //         console.log('events.length',events.length);
-            //     }
-            // }
+                    console.log('events.length',events.length);
+                }
+            }
 
             console.log('total events obtained', events.length);
     
