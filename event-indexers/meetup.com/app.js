@@ -114,7 +114,7 @@ function convertEventsToEveeFormat(meetupEvents, cb){
                                     "end_date": "0"
                                 },
                                 "time": event.local_time,
-                                "thumbnail_url": event.featured_photo ? event.featured_photo.thumb_link : 'https://i.imgur.com/yIPRLMg.jpg',
+                                "thumbnail_url": event.featured_photo ? event.featured_photo.base_url : 'https://i.imgur.com/yIPRLMg.jpg',
                                 "detail_url": event.link,
                                 "source_url": "https://api.meetup.com/find/upcoming_events",
                                 "metadata": {
