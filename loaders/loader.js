@@ -55,6 +55,8 @@ function initProcess(){
                         values.push(eventObj.start_date); 
                         values.push(eventObj.end_date); 
                         values.push(eventObj.location); 
+                        // If zip_code was set as 0 (no zip provided then set NULL otherwise use zip_code)
+                        values.push(eventObj.zip_code === 0 ? null : eventObj.zip_code); 
                         values.push(eventObj.category); 
                         values.push(eventObj.details_url); 
                         values.push(eventObj.description); 
@@ -68,11 +70,12 @@ function initProcess(){
                             start_date,
                             end_date,
                             location,
+                            zip_code,
                             category,
                             details_url,
                             description,
                             thumbnail_url
-                        ) VALUES (?,?,?,?,?,?,?,?,?,?,?);`;
+                        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?);`;
                         db.query(SQL, values, (err,results)=>{
                             if(!err){
                                 // Once we stored message payload in SQL we 

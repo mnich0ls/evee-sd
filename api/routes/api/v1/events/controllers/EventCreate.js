@@ -43,6 +43,10 @@ var paramValidations = {
         minLength: 2,
         maxLength: 200
     },
+    'zip_code': {
+        minLength: 0,
+        maxLength: 10
+    },
     'description': {
         minLength: 0,
         maxLength: 160
@@ -110,6 +114,10 @@ function sendValidatedEventToMessageQueue(payload){
                 "location": {
                     DataType: "String",
                     StringValue: payload.location
+                },
+                "zip_code": {
+                    DataType: "String",
+                    StringValue: payload.zip_code ? payload.zip_code : 0
                 },
                 "description": {
                     DataType: "String",

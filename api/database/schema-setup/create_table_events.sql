@@ -8,6 +8,7 @@ CREATE TABLE `eveesd`.`events` (
   `start_date` DATETIME NOT NULL,
   `end_date` DATETIME NOT NULL,
   `location` VARCHAR(100) NOT NULL,
+  `zip_code` VARCHAR(10) NULL,
   `category` VARCHAR(100) NOT NULL,
   `details_url` VARCHAR(512) NOT NULL,  
   `description` VARCHAR(255) NOT NULL,
