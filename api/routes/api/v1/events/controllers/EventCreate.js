@@ -113,11 +113,7 @@ function sendValidatedEventToMessageQueue(payload){
                 },
                 "location": {
                     DataType: "String",
-                    StringValue: payload.location
-                },
-                "zip_code": {
-                    DataType: "String",
-                    StringValue: payload.zip_code ? payload.zip_code : 0
+                    StringValue: `${payload.location}|${payload.zip_code || 0}`
                 },
                 "description": {
                     DataType: "String",
