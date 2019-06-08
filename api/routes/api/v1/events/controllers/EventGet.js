@@ -10,7 +10,8 @@ module.exports = function(values, callback){
 
     var filters = Object.keys(values);
     var whiteListedValues = []
-    var SQL = "SELECT e.* FROM events e";
+    var SQL = "SELECT e.*, ifnull(z.location_name, e.location) as location FROM events e";
+    SQL += " LEFT JOIN zip_codes z on z.zip = e.zip_code"
     var limit = 50;
 
     // Perform a start_date ISO8601 (YYYY-MM-DD) validation
@@ -56,17 +57,27 @@ module.exports = function(values, callback){
         let locations = values['locations']
         if (Array.isArray(locations)) {
             console.log('Search by array location', locations)
-            whiteListedValues.push(locations.shift() + '%')
-            SQL += " AND (e.location like ?"
+            let firstLocation = locations.shift()
+            whiteListedValues.push(firstLocation)
+            let EVENT_LOCATION_SQL = " (e.location = ?"
             locations.forEach((l) => {
-                whiteListedValues.push(l + '%')
-                SQL += " OR e.location like ?"
+                EVENT_LOCATION_SQL += " OR e.location = ?"
+                whiteListedValues.push(l)
             })
-            SQL += ")"
+            EVENT_LOCATION_SQL += ")"
+            let ZIP_CODE_LOCATION_SQL = "(z.location_name = ?"
+            whiteListedValues.push(firstLocation)
+            locations.forEach((l) => {
+                ZIP_CODE_LOCATION_SQL += " OR z.location_name = ?"
+                whiteListedValues.push(l)
+            })
+            ZIP_CODE_LOCATION_SQL += ")"
+            SQL += " AND (" + EVENT_LOCATION_SQL + " OR " + ZIP_CODE_LOCATION_SQL + ")" 
         } else {
             console.log('Search by string location', locations)
-            whiteListedValues.push(locations + '%')
-            SQL += " AND e.location like ?"
+            whiteListedValues.push(locations)
+            whiteListedValues.push(locations)
+            SQL += " AND (e.location = ? OR z.location_name = ?)"
         }
     }
 
