@@ -55,9 +55,13 @@ function initProcess(){
                         values.push(eventObj.price); 
                         values.push(eventObj.start_date); 
                         values.push(eventObj.end_date); 
-                        values.push(eventObj.location); 
-                        // If zip_code was set as 0 (no zip provided then set NULL otherwise use zip_code)
-                        values.push(eventObj.zip_code === 0 ? null : eventObj.zip_code); 
+                        
+                        // NOTE: location has a pipe to separate optional zip code associated with location
+                        let location = eventObj.location.split('|');
+                        values.push(location[0]); // name of location
+                        // If location [1] (zip code) was set as 0 (no zip provided then set NULL otherwise use zip code)
+                        values.push(location[1] == 0 ? null : location[1]); // zip code if available 
+                        
                         values.push(eventObj.category); 
                         values.push(eventObj.details_url); 
                         values.push(eventObj.description); 
