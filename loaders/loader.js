@@ -11,8 +11,8 @@ let pollSQS_Job = new CronJob('0 1 * * *', function() {
     initProcess();
 }, null, null, 'America/Los_Angeles');
 
-// Run 1:15 am daily (Update database statuses)
-let updateStatus_Job = new CronJob('15 1 * * *', function() {
+// Run 2:15 am daily (Update database statuses)
+let updateStatus_Job = new CronJob('15 2 * * *', function() {
     updateStatus();
 }, null, null, 'America/Los_Angeles');
 
