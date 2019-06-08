@@ -3,6 +3,7 @@ const aws = require('aws-sdk');
 aws.config.loadFromPath('./connection/aws-sqs.config.json');
 const sqs = new aws.SQS();
 const QueueUrl = require('./connection/aws-sqs.config.json').QueueUrl;
+const moment = require('moment');
 
 const CronJob = require('cron').CronJob;
 
@@ -87,7 +88,8 @@ function initProcess(){
                                 });
                             }
                             else{
-                                console.log('err', err);
+                                let timestamp = moment().format('YYYY-MM-DD hh:mm:ss')
+                                console.log(timestamp + ': err', err);
                             }
                         });
                     });
@@ -108,7 +110,8 @@ function updateStatus(){
             let values = ['archived'];
             let SQL = 'DELETE FROM events WHERE status=? ';
             db.query(SQL, values, (err,results)=>{
-                console.log('delete archived record', results);
+                let timestamp = moment().format('YYYY-MM-DD hh:mm:ss')
+                console.log(timestamp + ': delete archived record', results);
             });
         });
     });
