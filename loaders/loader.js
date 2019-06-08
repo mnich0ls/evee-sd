@@ -12,8 +12,8 @@ let pollSQS_Job = new CronJob('0 1 * * *', function() {
     initProcess();
 }, null, null, 'America/Los_Angeles');
 
-// Run 1:15 am daily (Update database statuses)
-let updateStatus_Job = new CronJob('15 1 * * *', function() {
+// Run 2:15 am daily (Update database statuses)
+let updateStatus_Job = new CronJob('15 2 * * *', function() {
     updateStatus();
 }, null, null, 'America/Los_Angeles');
 
@@ -56,6 +56,8 @@ function initProcess(){
                         values.push(eventObj.start_date); 
                         values.push(eventObj.end_date); 
                         values.push(eventObj.location); 
+                        // If zip_code was set as 0 (no zip provided then set NULL otherwise use zip_code)
+                        values.push(eventObj.zip_code === 0 ? null : eventObj.zip_code); 
                         values.push(eventObj.category); 
                         values.push(eventObj.details_url); 
                         values.push(eventObj.description); 
@@ -69,11 +71,12 @@ function initProcess(){
                             start_date,
                             end_date,
                             location,
+                            zip_code,
                             category,
                             details_url,
                             description,
                             thumbnail_url
-                        ) VALUES (?,?,?,?,?,?,?,?,?,?,?);`;
+                        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?);`;
                         db.query(SQL, values, (err,results)=>{
                             if(!err){
                                 // Once we stored message payload in SQL we 

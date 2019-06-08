@@ -16,24 +16,52 @@ function makeRequest(){
     // Create configured Eventbrite SDK
     const sdk = eventbrite({token: config.eventbrite.api.token});
 
-    let eventbriteEndpoint = '/events/search?location.address=san diego&';
+    let eventbriteSearchEndpoint = '/events/search?location.address=san diego&';
+    let eventbriteVenueEndpoint = '/venues';
+
     let events = [];
     
     (async function(){
         try{
 
             console.log('page_number',1); 
-            let page1 = await sdk.request(`${eventbriteEndpoint}page=1`);
+            let page1 = await sdk.request(`${eventbriteSearchEndpoint}page=1`);
             console.log('avail object_count',page1.pagination.object_count);
             page1.events.forEach(event=>events.push(event));;
+
+            // Get page 1 venue data (specifically postal_code)
+            for(let c=0; c<=events.length; c++){
+              if(events[c]){
+                let venue_id = events[c].venue_id;
+                if(venue_id){
+                  let venueData = await sdk.request(`${eventbriteVenueEndpoint}/${venue_id}`)
+                  events[c].location = venueData.name || venueData.address.city;
+                  events[c].postal_code = venueData.address.postal_code;
+                }
+              }
+            }
 
             const page_count = page1.pagination.page_count;
 
             if(page_count > 1){
                 for (let page = 2; page<= page_count; page++){
-                    let currentPage = await sdk.request(`${eventbriteEndpoint}page=${page}`);
+                    let currentPage = await sdk.request(`${eventbriteSearchEndpoint}page=${page}`);
                     console.log('page_number',currentPage.pagination.page_number); 
                     currentPage.events.forEach(event=>events.push(event));
+
+                    // Get all other pages venue data (specifically postal_code)
+                    // Duplicate code from above, we can refactor later.
+                    for(let c=0; c<=events.length; c++){
+                      if(events[c]){
+                        let venue_id = events[c].venue_id;
+                        if(venue_id){
+                          let venueData = await sdk.request(`${eventbriteVenueEndpoint}/${venue_id}`)
+                          events[c].location = venueData.name || venueData.address.city;
+                          events[c].postal_code = venueData.address.postal_code;
+                        }
+                      }
+                    }
+
                     console.log('events.length',events.length);
                 }
             }
@@ -64,7 +92,8 @@ function makeRequest(){
                     'event': {
                         'title' : event.name.text,
                         'category': catName,
-                        'location': 'San Diego',
+                        'location': event.location,
+                        'zip_code': event.postal_code,
                         'price': event.is_free ? 0 : -1,
                         'dates': {
                             'start_date': event.start.local,
@@ -99,6 +128,7 @@ function makeRequest(){
                         start_date: event.dates.start_date,
                         end_date: event.dates.end_date == '0' ? event.dates.start_date : event.dates.end_date,
                         location: event.location,
+                        zip_code: event.zip_code,
                         category: event.category,
                         details_url: event.detail_url,
                         description: '0',

@@ -29,7 +29,7 @@ function makeRequest(){
 
     let upcoming_events__Options = { 
         method: 'GET',
-        url: `${config.meetup.api.baseURL}/find/upcoming_events?fields=title,fee,local_date,local_time,link,venue,group_category,featured_photo,thumbnail_url`,
+        url: `${config.meetup.api.baseURL}/find/upcoming_events?fields=title,fee,local_date,local_time,link,venue,group_category,featured_photo,thumbnail_url,zip`,
         qs: { // lat and lon params are set for San Diego
             lat: '32.7167',
             lon: '-117.1661',
@@ -73,6 +73,8 @@ function makeRequest(){
                         },
                         json: true 
                     };
+
+                    if(event.zip_code) options.body.zip_code = event.zip_code;
         
                     request(options, function (error, response, body) {
                         if (error) console.log(error);
@@ -108,6 +110,15 @@ function convertEventsToEveeFormat(meetupEvents, cb){
                                 "title": event.name,
                                 "category": event.group.category ? event.group.category.name : 'meetup',
                                 "location": event.venue ? event.venue.city : event.group.localized_location,
+                                "zip_code": (()=>{
+                                    if(event.venue){
+                                        if(event.venue.zip)
+                                            return event.venue.zip;
+                                        else 
+                                            return null;
+                                    }
+                                    return null;
+                                })(),
                                 "price": event.fee ? event.fee.amount : 0,
                                 "dates": {
                                     "start_date": event.local_date,
