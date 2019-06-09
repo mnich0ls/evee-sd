@@ -2,6 +2,13 @@ const eventbrite = require('eventbrite').default;
 const config = require('./app.config.json');
 const request = require('request');
 const CronJob = require('cron').CronJob;
+const Bottleneck = require('bottleneck')
+const moment = require('moment')
+
+const limiter = new Bottleneck({
+  maxConcurrent: 1,
+  minTime: 3600 // Eventbrite's limit is 1000 calls per hour - a every 3.6 seconds 
+})
 
 // Run 12:20 am midnight daily
 let scheduledJob = new CronJob('0 20 0 * * *', function() {
@@ -11,65 +18,67 @@ let scheduledJob = new CronJob('0 20 0 * * *', function() {
 
 scheduledJob.start();
 
+function now(){
+  return moment().format('YYYY-MM-DD hh:mm:ss')
+}
+function log(message, object){
+  if (object) {
+    console.log(now() + ': ' + message, object)
+  } else {
+    console.log(now() + ': ' + message)
+  }
+}
 function makeRequest(){
-
+  log('starting')
     // Create configured Eventbrite SDK
     const sdk = eventbrite({token: config.eventbrite.api.token});
 
-    let eventbriteSearchEndpoint = '/events/search?location.address=san diego&';
-    let eventbriteVenueEndpoint = '/venues';
+    const eventbriteSearchEndpoint = '/events/search?expand=venue&location.address=san diego&';
 
     let events = [];
     
     (async function(){
         try{
-
-            console.log('page_number',1); 
+          log('current page', 1)
             let page1 = await sdk.request(`${eventbriteSearchEndpoint}page=1`);
-            console.log('avail object_count',page1.pagination.object_count);
-            page1.events.forEach(event=>events.push(event));;
-
-            // Get page 1 venue data (specifically postal_code)
-            for(let c=0; c<=events.length; c++){
-              if(events[c]){
-                let venue_id = events[c].venue_id;
-                if(venue_id){
-                  let venueData = await sdk.request(`${eventbriteVenueEndpoint}/${venue_id}`)
-                  events[c].location = venueData.name || venueData.address.city;
-                  events[c].postal_code = venueData.address.postal_code;
-                }
-              }
-            }
-
+            log('available events count',page1.pagination.object_count);
+            page1.events.forEach(event=>events.push(event));
             const page_count = page1.pagination.page_count;
 
             if(page_count > 1){
                 for (let page = 2; page<= page_count; page++){
-                    let currentPage = await sdk.request(`${eventbriteSearchEndpoint}page=${page}`);
-                    console.log('page_number',currentPage.pagination.page_number); 
+                    let currentPage = await limiter.schedule(() => {
+                      return sdk.request(`${eventbriteSearchEndpoint}page=${page}`)
+                    })
+                    log('current page number',currentPage.pagination.page_number); 
                     currentPage.events.forEach(event=>events.push(event));
 
-                    // Get all other pages venue data (specifically postal_code)
-                    // Duplicate code from above, we can refactor later.
-                    for(let c=0; c<=events.length; c++){
-                      if(events[c]){
-                        let venue_id = events[c].venue_id;
-                        if(venue_id){
-                          let venueData = await sdk.request(`${eventbriteVenueEndpoint}/${venue_id}`)
-                          events[c].location = venueData.name || venueData.address.city;
-                          events[c].postal_code = venueData.address.postal_code;
-                        }
-                      }
-                    }
-
-                    console.log('events.length',events.length);
+                    log('current total events',events.length);
                 }
             }
 
-            console.log('total events obtained', events.length);
+            log('total events', events.length);
     
-            let eveeFormattedEvents = events.map(event=>{ 
-            
+            let droppedCount = 0
+            let eveeFormattedEvents = events.filter(event => {
+              // todo: refine criteria for removing events 
+              if (!event.is_series && event.shareable && !event.hide_start_date && !event.hide_end_date && !event.online_event) {
+                // log('adding event', {
+                //   title: event.name.text
+                // })
+                return event
+              } else {
+                droppedCount++
+                //  log('dropped event', {
+                //   title: event.name.text,
+                //   series: event.is_series,
+                //   shareable: event.shareable,
+                //   hide_start_date: event.hide_start_date,
+                //   hide_end_date: event.hide_end_date,
+                //   is_online: event.online_event
+                // })
+              }
+            }).map(event=>{ 
                 let catName = null;
                 let category = eventbrite_categories.find(cat=>cat.id === event.category_id);
                 
@@ -92,8 +101,8 @@ function makeRequest(){
                     'event': {
                         'title' : event.name.text,
                         'category': catName,
-                        'location': event.location,
-                        'zip_code': event.postal_code,
+                        'location': event.venue.address.localized_area_display,
+                        'zip_code': event.venue.address.postal_code,
                         'price': event.is_free ? 0 : -1,
                         'dates': {
                             'start_date': event.start.local,
@@ -109,8 +118,11 @@ function makeRequest(){
                             'original_values': '',
                         }
                     }
-                } 
+                }
             });
+
+            log('dropped events count', droppedCount)
+            log('events to add count', eveeFormattedEvents.length)
                 
             eveeFormattedEvents.forEach(eveeEvent=>{
                 let event = eveeEvent.event;
