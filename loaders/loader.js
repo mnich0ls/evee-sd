@@ -20,6 +20,18 @@ let updateStatus_Job = new CronJob('15 2 * * *', function() {
 pollSQS_Job.start();
 updateStatus_Job.start();
 
+function now() {
+    return moment().format('YYYY-MM-DD hh:mm:ss')
+}
+
+function log(message, object) {
+    if (object) {
+        console.log(now() + ': ' + message, object)
+    } else {
+        console.log(now() + ": " + message)
+    }
+}
+
 function initProcess(){
     sqs.getQueueAttributes({QueueUrl, AttributeNames: ['All']}, (err,res)=>{
         
@@ -107,18 +119,32 @@ function initProcess(){
 }
 
 function updateStatus(){
+    let REMOVE_NON_SD_LOCATIONS_SQL = `delete e
+    from events e
+    left join zip_codes z on z.zip = e.zip_code
+    where e.zip_code is not null
+    and z.location_name is null;`
+
+    db.query(REMOVE_NON_SD_LOCATIONS_SQL, [], (err, results) => {
+        if (err) {
+            log('could not remove events with locatinos outside SD', err)
+        } else {
+            log('removed events with locations outside SD', results)
+        }
+    })
     let values = ['archived', 'active'];
     let SQL = 'UPDATE events SET status=? WHERE status=? ;';
     db.query(SQL, values, (err,results)=>{
+        log('deactivated all active events')
         let values = ['active', 'inactive'];
         let SQL = 'UPDATE events SET status=? WHERE status=? ;';
         db.query(SQL, values, (err,results)=>{
+            log('activated all inactive events')
             // Finally remove all old inactive records from database
             let values = ['archived'];
             let SQL = 'DELETE FROM events WHERE status=? ';
             db.query(SQL, values, (err,results)=>{
-                let timestamp = moment().format('YYYY-MM-DD hh:mm:ss')
-                console.log(timestamp + ': delete archived record', results);
+                log('deleted all previous events', results)
             });
         });
     });
