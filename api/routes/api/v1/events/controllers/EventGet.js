@@ -91,7 +91,7 @@ module.exports = function(values, callback){
         SQL += " AND e.end_date >= ?"
     }
 
-    SQL += " AND datediff(end_date, start_date) <= 90"
+    SQL += " AND datediff(end_date, start_date) <= 7"
     SQL += " ORDER BY e.start_date LIMIT ? OFFSET ?";
     whiteListedValues.push(limit);
 
