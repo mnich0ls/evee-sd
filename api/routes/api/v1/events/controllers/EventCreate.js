@@ -14,7 +14,7 @@ var requiredParams = [
     'start_date',
     'end_date',
     'location',
-    'description',
+    // 'description',
     'thumbnail_url',
     'category',
     'details_url'
