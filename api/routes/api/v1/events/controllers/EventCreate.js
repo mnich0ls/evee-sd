@@ -117,7 +117,7 @@ function sendValidatedEventToMessageQueue(payload){
                 },
                 "description": {
                     DataType: "String",
-                    StringValue: payload.description
+                    StringValue: payload.description || 0
                 },
                 "thumbnail_url": {
                     DataType: "String",
