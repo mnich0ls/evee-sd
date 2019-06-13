@@ -7,13 +7,13 @@ const moment = require('moment');
 
 const CronJob = require('cron').CronJob;
 
-// Run 2:00 am daily (Insert new event data to database)
-let pollSQS_Job = new CronJob('0 2 * * *', function() {
+// Run 4:15 am daily (Insert new event data to database)
+let pollSQS_Job = new CronJob('15 4 * * *', function() {
     initProcess();
 }, null, null, 'America/Los_Angeles');
 
-// Run 3:15 am daily (Update database statuses)
-let updateStatus_Job = new CronJob('15 3 * * *', function() {
+// Run 4:30 am daily (Update database statuses)
+let updateStatus_Job = new CronJob('30 4 * * *', function() {
     updateStatus();
 }, null, null, 'America/Los_Angeles');
 
