@@ -53,7 +53,8 @@ module.exports = function(payload, requiredParams, paramValidations){
                         else if(validationTypeValue === 'Date'){
                             var isDateFormatValid = RegEx.Date.ISO_8601(payload[param]);
                             if(!isDateFormatValid)
-                                validationErrors.push(`[${param}] must be in ISO-8601 date format (YYYY-MM-DD).`);
+                                if(!isDateFormatValid != 0) // 0 can be sent if we want to indicate the end date is ongoing (i.e: No end date)
+                                    validationErrors.push(`[${param}] must be in ISO-8601 date format (YYYY-MM-DD).`);
                             // Check to make sure the end_date is not before the start_date
                             else if(param === 'end_date'){
                                 var start_date = getYYYYMMDD(payload['start_date']);
