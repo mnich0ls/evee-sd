@@ -10,8 +10,9 @@ module.exports = function(values, callback){
 
     var filters = Object.keys(values);
     var whiteListedValues = []
-    var SQL = "SELECT e.*, ifnull(z.location_name, e.location) as location FROM events e";
+    var SQL = "SELECT e.*, ifnull(z.location_name, e.location) as location, s.rank FROM events e";
     SQL += " LEFT JOIN zip_codes z on z.zip = e.zip_code"
+    SQL += " LEFT JOIN event_sources s on s.url = e.source"
     var limit = 50;
 
     // Perform a start_date ISO8601 (YYYY-MM-DD) validation
@@ -92,7 +93,7 @@ module.exports = function(values, callback){
     }
 
     SQL += " AND datediff(end_date, start_date) <= 7"
-    SQL += " ORDER BY e.start_date LIMIT ? OFFSET ?";
+    SQL += " ORDER BY date(e.start_date), s.rank LIMIT ? OFFSET ?";
     whiteListedValues.push(limit);
 
     if(!filters.includes('page')) {
