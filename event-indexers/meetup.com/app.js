@@ -34,7 +34,7 @@ function makeRequest(){
             lat: '32.7167',
             lon: '-117.1661',
             order: 'time',
-            // page: '1'
+            // page: '10'
             page: '100000'
         },
         headers: {
@@ -125,7 +125,7 @@ function convertEventsToEveeFormat(meetupEvents, cb){
                                     "end_date": "0"
                                 },
                                 "time": event.local_time,
-                                "thumbnail_url": event.featured_photo ? event.featured_photo.base_url : 'https://i.imgur.com/yIPRLMg.jpg',
+                                "thumbnail_url": event.featured_photo ? event.featured_photo.photo_link : null,
                                 "detail_url": event.link,
                                 "source_url": "https://api.meetup.com/find/upcoming_events",
                                 "metadata": {
@@ -141,5 +141,3 @@ function convertEventsToEveeFormat(meetupEvents, cb){
         });
     });
 }
-
-makeRequest();
