@@ -47,10 +47,10 @@ var paramValidations = {
     //     minLength: 0,
     //     maxLength: 10
     // },
-    'description': {
-        minLength: 0,
-        maxLength: 2500
-    },
+    // 'description': {
+    //     minLength: 0,
+    //     maxLength: 2500
+    // },
     'thumbnail_url': {
         type: 'Url',
         minLength: 0,
