@@ -49,7 +49,7 @@ var paramValidations = {
     },
     'description': {
         minLength: 0,
-        maxLength: 160
+        maxLength: 2500
     },
     'thumbnail_url': {
         type: 'Url',
