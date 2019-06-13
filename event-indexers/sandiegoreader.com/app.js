@@ -8,9 +8,7 @@ const request = require('request-promise-native');
 const cheerio = require('cheerio');
 const Bottleneck = require('bottleneck');
 
-
 const logger = log4js.getLogger();
-
 logger.level = 'all';
 
 const monthFromNow = moment().add(1, 'months').calendar().split('/');
@@ -66,18 +64,17 @@ async function getIndexRefs(params){
 }
 
 async function getRefDetails(){
-    try{
-        for(let ref = 0; ref < eventHrefs.length; ref++){
-    
+    for(let ref = 0; ref < eventHrefs.length; ref++){
+        try {
             const req = await limiter.schedule(() => axios.get(`${baseURL}${eventHrefs[ref]}`));
             const $ = cheerio.load(req.data);
-
+    
             const schema = $('script[type="application/ld+json"]')['1'].children[0].data.trim();
             let event = JSON.parse(schema);
             
             if(Array.isArray(event))
                 event = event[0];
-
+    
             if(event){
                 event.category = $('.categories a').first().text();
                 processedEvents.push({ 
@@ -126,10 +123,10 @@ async function getRefDetails(){
                     description: event.description,
                     thumbnail_url: event.image ? event.image : 'https://i.imgur.com/yIPRLMg.jpg'
                 });
-
+    
                 // Push this newly created event to the EveeSD API
                 let currentProcessingEvent = processedEvents[processedEvents.length-1];
-
+    
                 let eveeApiResult = await request({ 
                     method: 'POST',
                     url: `${config.eveesd.api.baseURL}/events/create`,
@@ -140,14 +137,14 @@ async function getRefDetails(){
                     body: currentProcessingEvent,
                     json: true 
                 });
-
+    
                 logger.info(`[SENT EVENT TO SQS OK] : ${currentProcessingEvent.title}`);
-
+    
             }
         }
-        logger.warn(`[Task Completed]: Total events processed: ${eventHrefs.length}`);
+        catch(e){
+            logger.error(e.message);
+        }
     }
-    catch(e){
-        logger.error(e);
-    }
+    logger.warn(`[Task Completed]: Total events processed: ${eventHrefs.length}`);
 }
