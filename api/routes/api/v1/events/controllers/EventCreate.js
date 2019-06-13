@@ -43,10 +43,10 @@ var paramValidations = {
         minLength: 2,
         maxLength: 200
     },
-    'zip_code': {
-        minLength: 0,
-        maxLength: 10
-    },
+    // 'zip_code': {
+    //     minLength: 0,
+    //     maxLength: 10
+    // },
     'description': {
         minLength: 0,
         maxLength: 2500
