@@ -1,11 +1,17 @@
 const config = require('./app.config.json');
 
+const log4js = require('log4js')
 const CronJob = require('cron').CronJob;
 const moment = require('moment');
 const axios = require('axios');
 const request = require('request-promise-native');
 const cheerio = require('cheerio');
 const Bottleneck = require('bottleneck');
+
+
+const logger = log4js.getLogger();
+
+logger.level = 'all';
 
 const monthFromNow = moment().add(1, 'months').calendar().split('/');
 
@@ -19,6 +25,7 @@ const initParams = `/events/search/?category=&start_date=${date.start}&end_date=
 
 let eventHrefs = [];
 let processedEvents = [];
+let pageIndex = 1;
 
 const limiter = new Bottleneck({
     maxConcurrent: 1,
@@ -33,6 +40,7 @@ let scheduledJob = new CronJob('0 45 0 * * *', function() {
 scheduledJob.start();
 
 async function getIndexRefs(params){
+    logger.warn(`[Getting Page: (${pageIndex}) index urls]`);
     try{
         const req = await limiter.schedule(() => axios.get(`${baseURL}${params}`));
         const $ = cheerio.load(req.data);
@@ -45,13 +53,15 @@ async function getIndexRefs(params){
             }
         }
         const nextPageRefParams = $('.button').attr('href');
-        if(nextPageRefParams !== '#')
+        if(nextPageRefParams !== '#'){
+            pageIndex += 1; 
             getIndexRefs(nextPageRefParams);
+        }
         else
-            getRefDetails();
+            getRefDetails(); 
     }
     catch(e){
-        console.log(e);
+        logger.error(e);
     }
 }
 
@@ -131,13 +141,13 @@ async function getRefDetails(){
                     json: true 
                 });
 
-                console.log(eveeApiResult);
+                logger.info(`[SENT EVENT TO SQS OK] : ${currentProcessingEvent.title}`);
 
             }
         }
-        console.log(`[Task Completed]: Total events processed: ${eventHrefs.length}`);
+        logger.warn(`[Task Completed]: Total events processed: ${eventHrefs.length}`);
     }
     catch(e){
-        console.log(e);
+        logger.error(e);
     }
 }
