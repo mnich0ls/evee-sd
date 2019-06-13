@@ -22,7 +22,7 @@ var requiredParams = [
 
 var paramValidations = {
     'title': {
-        minLength: 6,
+        minLength: 1,
         maxLength: 250
     },
     'source': {
