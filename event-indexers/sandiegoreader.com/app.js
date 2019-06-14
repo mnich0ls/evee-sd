@@ -46,7 +46,8 @@ async function getIndexRefs(params){
         for(let ref in indexRefs){
             if(indexRefs[ref].hasOwnProperty('attribs')){
                 if(indexRefs[ref].attribs.href){
-                    eventHrefs.push(indexRefs[ref].attribs.href);
+                    if(!eventHrefs.includes(indexRefs[ref].attribs.href))
+                        eventHrefs.push(indexRefs[ref].attribs.href);
                 }
             }
         }
