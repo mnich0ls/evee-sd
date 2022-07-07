@@ -13,7 +13,7 @@
     "bottleneck": "^2.19.1",
     "cron": "^1.7.1",
     "eventbrite": "^1.2.1",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "request": "^2.88.0"
   }
 }
